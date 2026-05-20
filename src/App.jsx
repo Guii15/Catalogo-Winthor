@@ -4,157 +4,143 @@ import 'jspdf-autotable'
 import './App.css'
 import produtos from './produtos.json'
 
-function App() {
-  const [categoriaAtiva, setCategoriaAtiva] = useState("Todos");
-  const [busca, setBusca] = useState("");
-  const [menuAberto, setMenuAberto] = useState(false);
+const VENDEDORES = [
+  { nome: 'Patrícia', tel: '5535994634340' },
+  { nome: 'Isaac',    tel: '5535918365660' },
+  { nome: 'Osmar',   tel: '5535991829340' },
+  { nome: 'Yhan',    tel: '5535994321080' },
+  { nome: 'Guilherme', tel: '5535983506700' },
+];
 
-  // --- LÓGICA DE CATEGORIAS ---
-  // 1. Pega todas as categorias do JSON
-  const todasCategorias = produtos.map(p => p.categoria);
-  // 2. Remove duplicadas
-  const categoriasUnicas = [...new Set(todasCategorias)];
-  // 3. Filtra: Remove "Geral" da lista de botões (mas os produtos continuam existindo)
-  //    e Remove "Todos" da lista gerada (já temos ele fixo se quiser)
-  const categoriasParaMenu = categoriasUnicas.filter(c => c !== "Geral" && c !== "Todos").sort();
+function CardProduto({ produto }) {
+  const [seletorAberto, setSeletorAberto] = useState(false);
 
-  // --- FILTROS ---
-  const produtosFiltrados = produtos.filter(p => {
-    // Se a categoria for "Todos", aceita qualquer coisa. 
-    // Se não, tem que bater a categoria exata.
-    const batendoCategoria = categoriaAtiva === "Todos" ? true : p.categoria === categoriaAtiva;
-    
-    // Busca por nome OU código
-    const batendoBusca = p.descricao.toLowerCase().includes(busca.toLowerCase()) || 
-                         p.codprod.toString().includes(busca);
-                         
-    return batendoCategoria && batendoBusca;
-  });
-
-  const toggleMenu = () => setMenuAberto(!menuAberto);
-
-  // Função PDF
-  const gerarPDF = () => {
-    const doc = new jsPDF();
-    doc.text(`Catálogo Binário - ${categoriaAtiva}`, 14, 20);
-    const dados = produtosFiltrados.map(p => [
-      p.codprod, 
-      p.descricao, 
-      `R$ ${p.pvenda > 1 ? p.pvenda.toFixed(2) : 'Consulte'}`
-    ]);
-    doc.autoTable({ startY: 30, head: [['Cód', 'Produto', 'Preço']], body: dados });
-    doc.save("catalogo_binario.pdf");
+  const abrirWhatsApp = (vendedor) => {
+    const msg = encodeURIComponent(
+      `Olá ${vendedor.nome}! Tenho interesse no produto:\n\n*${produto.descricao}*\nCód: ${produto.codprod}\nPreço: R$ ${produto.pvenda.toFixed(2)}\n\nPoderia me ajudar?`
+    );
+    window.open(`https://wa.me/${vendedor.tel}?text=${msg}`, '_blank');
+    setSeletorAberto(false);
   };
 
-  // Função para carregar imagens da pasta assets dinamicamente (se estiver usando assets)
-  // Se ainda estiver usando a pasta public, pode ignorar essa parte e usar direto no src
-  const getImagem = (cod) => {
-    return `/imagens/${cod}.jpg`; // Caminho da pasta public
+  return (
+    <div className="card">
+      <div className="badge-promo">PROMOÇÃO</div>
+      <div className="foto-container">
+        <img
+          src={`/imagens/${produto.codprod}.jpg`}
+          alt={produto.descricao}
+          className="foto"
+          onError={(e) => { e.target.src = 'https://placehold.co/400x300?text=Sem+Foto'; }}
+        />
+      </div>
+      <div className="info">
+        <h3>{produto.descricao}</h3>
+
+        <p className="preco">
+          {produto.pvenda > 0
+            ? `R$ ${produto.pvenda.toFixed(2)}`
+            : <span className="sob-consulta">SOB CONSULTA</span>
+          }
+        </p>
+
+        <p className="estoque-info">
+          Em estoque: <strong>{produto.estoque}</strong> un.
+        </p>
+
+        <div className="botoes-card">
+          <div className="whatsapp-wrapper">
+            <button className="btn-whatsapp" onClick={() => setSeletorAberto(!seletorAberto)}>
+              💬 Falar com Vendedor
+            </button>
+            {seletorAberto && (
+              <div className="seletor-vendedor">
+                <p>Escolha o vendedor:</p>
+                {VENDEDORES.map(v => (
+                  <button key={v.nome} onClick={() => abrirWhatsApp(v)}>
+                    {v.nome}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [busca, setBusca] = useState("");
+
+  const produtosFiltrados = produtos.filter(p =>
+    p.descricao.toLowerCase().includes(busca.toLowerCase()) ||
+    p.codprod.toString().includes(busca)
+  );
+
+  const gerarPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text('Catálogo Binário Tecnologia', 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')}`, 14, 28);
+    const dados = produtosFiltrados.map(p => [
+      p.codprod,
+      p.descricao,
+      `${p.estoque} un.`,
+      `R$ ${p.pvenda.toFixed(2)}`,
+    ]);
+    doc.autoTable({
+      startY: 35,
+      head: [['Cód', 'Produto', 'Estoque', 'Preço']],
+      body: dados,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [56, 189, 248] },
+    });
+    doc.save('catalogo_binario.pdf');
   };
 
   return (
     <div className="container">
-      
-      {/* --- MENU LATERAL (SIDEBAR) --- */}
-      <div className={`sidebar ${menuAberto ? 'aberto' : ''}`}>
-        <button className="fechar-menu" onClick={toggleMenu}>×</button>
-        <div className="sidebar-content">
-          <h3>Categorias</h3>
-          
-          {/* Botão para ver tudo */}
-          <button 
-              className={`btn-menu ${categoriaAtiva === "Todos" ? 'ativo' : ''}`}
-              onClick={() => { setCategoriaAtiva("Todos"); setMenuAberto(false); }}
-            >
-              Ver Todos os Produtos
-          </button>
 
-          {/* Lista das outras categorias (Sem Geral) */}
-          {categoriasParaMenu.map(cat => (
-            <button 
-              key={cat}
-              className={`btn-menu ${categoriaAtiva === cat ? 'ativo' : ''}`}
-              onClick={() => { setCategoriaAtiva(cat); setMenuAberto(false); }}
-            >
-              {cat}
-            </button>
-          ))}
-
-          <hr />
-          {produtosFiltrados.length > 0 && (
-            <button onClick={gerarPDF} className="btn-pdf">
-              📄 Baixar PDF desta lista
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* --- CABEÇALHO --- */}
+      {/* CABEÇALHO */}
       <header>
         <div className="top-bar">
-          {/* Botão Hambúrguer Aumentado */}
-          <button className="btn-hamburguer" onClick={toggleMenu}>
-            ☰
-          </button>
-
-          <div className="logo-area" onClick={() => setCategoriaAtiva("Todos")} style={{cursor: 'pointer'}}>
-            <h1>BINÁRIO<span>.</span>TECH</h1>
+          <div className="logo-area">
+            <span className="logo-icone">B</span>
+            <div className="logo-texto">
+              <span className="logo-nome">BINÁRIO</span>
+              <span className="logo-sub">TECNOLOGIA</span>
+            </div>
           </div>
-          
-          <div className="espaco-vazio"></div>
+
+          <button onClick={gerarPDF} className="btn-pdf-header">
+            📄 Exportar PDF
+          </button>
         </div>
 
-        {/* BUSCA + CONTADOR */}
         <div className="busca-wrapper">
-           <input 
-            type="text" 
-            placeholder="🔍 Digite nome ou código..." 
+          <input
+            type="text"
+            placeholder="🔍 Digite nome ou código do produto..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
-          {/* Contador de Itens Pequeno */}
           <p className="contador-itens">
             {produtosFiltrados.length} {produtosFiltrados.length === 1 ? 'item encontrado' : 'itens encontrados'}
           </p>
         </div>
-
-        {/* Migalha (Opcional, mostra onde você está) */}
-        {categoriaAtiva !== "Todos" && (
-           <p className="migalha">Categoria: <strong>{categoriaAtiva}</strong></p>
-        )}
       </header>
 
-      {/* --- LISTA DE PRODUTOS --- */}
+      {/* GRADE DE PRODUTOS */}
       <div className="grade-produtos">
-        {produtosFiltrados.map((produto) => (
-          <div key={produto.codprod} className="card">
-            <div className="foto-container">
-              <img 
-                src={getImagem(produto.codprod)} 
-                alt={produto.descricao} 
-                className="foto"
-                onError={(e) => {e.target.src = 'https://via.placeholder.com/400?text=Sem+Foto'}}
-              />
-            </div>
-            <div className="info">
-              <span className="cat-tag">{produto.categoria}</span>
-              <h3>{produto.descricao}</h3>
-              
-              <p className="preco">
-                {produto.pvenda > 1 
-                  ? `R$ ${produto.pvenda.toFixed(2)}` 
-                  : <span className="sob-consulta">SOB CONSULTA</span>
-                }
-              </p>
-              
-              <button className="btn-comprar">Ver Detalhes</button>
-            </div>
-          </div>
+        {produtosFiltrados.map(produto => (
+          <CardProduto key={produto.codprod} produto={produto} />
         ))}
       </div>
 
     </div>
-  )
+  );
 }
 
 export default App

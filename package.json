@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "importar": "bun run scripts/importar-excel.mjs",
+    "deploy": "bun run scripts/importar-excel.mjs && vite build && bun run scripts/preparar-dist.mjs",
     "atualizar": "node atualizar.js"
   },
   "dependencies": {
@@ -18,7 +20,8 @@
     "jspdf-autotable": "^3.8.2",
     "oracledb": "^6.3.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.55",

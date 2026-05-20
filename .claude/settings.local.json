@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat \"/c/Users/Administrador/Documents/GitHub/Catalogo-Winthor/node_modules/.bin/chromium-cli\" 2>/dev/null || ls /c/Users/Administrador/.bun/bin/ | grep -i chrom || which chromium-cli 2>/dev/null || echo \"not found\")",
+      "Read(//c/Users/Administrador/.bun/bin//**)"
+    ]
+  }
+}
