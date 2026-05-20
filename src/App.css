@@ -21,7 +21,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 30px;
+  padding: 12px 30px;
   background: #0b1120;
   border-bottom: 1px solid #1e293b;
   position: sticky;
@@ -33,42 +33,11 @@ body {
 .logo-area {
   display: flex;
   align-items: center;
-  gap: 14px;
 }
 
-.logo-icone {
-  width: 46px;
-  height: 46px;
-  background: var(--destaque);
-  color: #0f172a;
-  font-size: 1.6rem;
-  font-weight: 900;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: -2px;
-}
-
-.logo-texto {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-}
-
-.logo-nome {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--texto-branco);
-  letter-spacing: 2px;
-}
-
-.logo-sub {
-  font-size: 0.65rem;
-  font-weight: 400;
-  color: var(--destaque);
-  letter-spacing: 4px;
-  text-transform: uppercase;
+.logo-img {
+  height: 60px;
+  width: auto;
 }
 
 /* BOTÃO PDF NO HEADER */
@@ -196,6 +165,13 @@ body {
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: 1px;
+}
+
+.cod-tag {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .info h3 {

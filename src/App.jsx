@@ -5,11 +5,11 @@ import './App.css'
 import produtos from './produtos.json'
 
 const VENDEDORES = [
-  { nome: 'Patrícia', tel: '5535994634340' },
-  { nome: 'Isaac',    tel: '5535918365660' },
-  { nome: 'Osmar',   tel: '5535991829340' },
-  { nome: 'Yhan',    tel: '5535994321080' },
-  { nome: 'Guilherme', tel: '5535983506700' },
+  { nome: 'Patrícia',  tel: '553599463434' },
+  { nome: 'Isaac',     tel: '553591836566' },
+  { nome: 'Osmar',    tel: '553599182934' },
+  { nome: 'Yhan',     tel: '553599432108' },
+  { nome: 'Guilherme', tel: '553598350670' },
 ];
 
 function CardProduto({ produto }) {
@@ -35,6 +35,7 @@ function CardProduto({ produto }) {
         />
       </div>
       <div className="info">
+        <p className="cod-tag">Cód: {produto.codprod}</p>
         <h3>{produto.descricao}</h3>
 
         <p className="preco">
@@ -107,11 +108,7 @@ function App() {
       <header>
         <div className="top-bar">
           <div className="logo-area">
-            <span className="logo-icone">B</span>
-            <div className="logo-texto">
-              <span className="logo-nome">BINÁRIO</span>
-              <span className="logo-sub">TECNOLOGIA</span>
-            </div>
+            <img src="/logo.png" alt="Binário Tecnologia" className="logo-img" />
           </div>
 
           <button onClick={gerarPDF} className="btn-pdf-header">
