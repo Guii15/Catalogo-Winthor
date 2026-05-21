@@ -3,6 +3,7 @@ import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import './App.css'
 import produtos from './produtos.json'
+import LoadingScreen from './LoadingScreen'
 
 const VENDEDORES = [
   { nome: 'Patrícia',  tel: '553599463434' },
@@ -25,7 +26,6 @@ function CardProduto({ produto }) {
 
   return (
     <div className="card">
-      <div className="badge-promo">PROMOÇÃO</div>
       <div className="foto-container">
         <img
           src={`/imagens/${produto.codprod}.jpg`}
@@ -45,9 +45,6 @@ function CardProduto({ produto }) {
           }
         </p>
 
-        <p className="estoque-info">
-          Em estoque: <strong>{produto.estoque}</strong> un.
-        </p>
 
         <div className="botoes-card">
           <div className="whatsapp-wrapper">
@@ -72,6 +69,7 @@ function CardProduto({ produto }) {
 }
 
 function App() {
+  const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState("");
 
   const produtosFiltrados = produtos.filter(p =>
@@ -100,6 +98,8 @@ function App() {
     });
     doc.save('catalogo_binario.pdf');
   };
+
+  if (loading) return <LoadingScreen onComplete={() => setLoading(false)} />;
 
   return (
     <div className="container">
