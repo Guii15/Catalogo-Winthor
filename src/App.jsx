@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import './App.css'
@@ -71,6 +71,7 @@ function CardProduto({ produto }) {
 function App() {
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState("");
+  const handleLoadingComplete = useCallback(() => setLoading(false), []);
 
   const produtosFiltrados = produtos.filter(p =>
     p.descricao.toLowerCase().includes(busca.toLowerCase()) ||
@@ -99,7 +100,7 @@ function App() {
     doc.save('catalogo_binario.pdf');
   };
 
-  if (loading) return <LoadingScreen onComplete={() => setLoading(false)} />;
+  if (loading) return <LoadingScreen onComplete={handleLoadingComplete} />;
 
   return (
     <div className="container">

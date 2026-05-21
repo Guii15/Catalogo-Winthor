@@ -285,5 +285,9 @@ body {
 }
 
 @media (max-width: 480px) {
-  .grade-produtos { grid-template-columns: 1fr; }
+  .grade-produtos { grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; }
+  .foto-container { height: 160px; }
+  .info h3 { font-size: 0.85rem; }
+  .preco { font-size: 1.1rem; }
+  .btn-whatsapp { font-size: 0.78rem; padding: 10px 6px; }
 }
