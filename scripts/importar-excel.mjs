@@ -7,6 +7,12 @@ const JSON_SAIDA = './src/produtos.json';
 const PASTA_IMAGENS = './public/imagens';
 const MARKUP = 1.30; // custo + 30%
 
+// Produtos temporariamente excluídos do catálogo (aguardando foto/verificação com fornecedor)
+const EXCLUIDOS_TEMP = [
+  20420, // GARRAFA DE ACO INOX 400ML AK-4009 — sem foto, verificar com fornecedor
+  20421, // GARRAFA DE ACO INOX 400ML AK-6021 — sem foto, verificar com fornecedor
+];
+
 // Dicionário de categorias (mesma lógica do atualizar.js, mas com encoding correto)
 const REGRAS_CATEGORIA = {
   'GAMER':         ['GAMER', 'RGB', 'MECHANICAL', 'HEADSET', 'LED'],
@@ -37,25 +43,40 @@ function parsarPreco(valor) {
 }
 
 const wb = XLSX.readFile(EXCEL_PATH);
-const sheet = wb.Sheets[wb.SheetNames[0]];
-const linhas = XLSX.utils.sheet_to_json(sheet);
+// Tenta aba "Produtos Ordenados", senão usa a primeira
+const nomesAbas = wb.SheetNames;
+const abaAlvo = nomesAbas.includes('Produtos Ordenados') ? 'Produtos Ordenados' : nomesAbas[0];
+const sheet = wb.Sheets[abaAlvo];
+
+// Lê como array de arrays para pular título e usar header da linha 1
+const raw = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+// Row 0 = título, Row 1 = cabeçalho, Row 2+ = dados
+const headers = raw[1] || [];
+const linhas = raw.slice(2).filter(r => r[0]);
 
 let comFoto = 0;
 let semFoto = 0;
 
+const COL = {
+  cod:     headers.indexOf('CODPROD'),
+  nome:    headers.indexOf('DESCRICAO'),
+  estoque: headers.indexOf('QTD_EM_ESTOQUE'),
+  custo:   headers.indexOf('PRECO_CUSTO'),
+  pvenda:  headers.indexOf('PRECO_VENDA'),
+};
+
 const produtos = linhas
-  .filter(row => row['Código'] && row['Produto'])
   .map(row => {
-    const cod = parseInt(row['Código']);
-    const nome = row['Produto'].toString().trim();
+    const cod = parseInt(row[COL.cod]);
+    if (!cod || isNaN(cod)) return null;
+    const nome = (row[COL.nome] || '').toString().trim();
+    if (!nome) return null;
     const fotoNome = `${cod}.jpg`;
-    const custo = parsarPreco(row['Custo (R$)']);
-    const estoque = parseInt(row['Qtd. Estoque']) || 0;
+    const custo = parsarPreco(row[COL.custo]);
+    const pvendaBruto = parsarPreco(row[COL.pvenda]);
+    const pvenda = pvendaBruto > 0 ? pvendaBruto : parseFloat((custo * MARKUP).toFixed(2));
+    const estoque = parseInt(row[COL.estoque]) || 0;
 
-    // Preço = custo + 30%
-    const preco = custo > 0 ? parseFloat((custo * MARKUP).toFixed(2)) : 0;
-
-    // Verifica se a imagem existe na pasta public/imagens
     const imgPath = join(PASTA_IMAGENS, fotoNome);
     const temImagem = existsSync(imgPath);
     if (temImagem) comFoto++; else semFoto++;
@@ -63,13 +84,14 @@ const produtos = linhas
     return {
       codprod: cod,
       descricao: nome,
-      pvenda: preco,
+      pvenda,
       custo,
       estoque,
       categoria: classificar(nome),
       imagem: `/imagens/${fotoNome}`,
     };
-  });
+  })
+  .filter(Boolean);
 
 writeFileSync(JSON_SAIDA, JSON.stringify(produtos, null, 2), 'utf8');
 
