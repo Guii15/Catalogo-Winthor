@@ -11,6 +11,15 @@ const MARKUP = 1.30; // custo + 30%
 const EXCLUIDOS_TEMP = [
   20420, // GARRAFA DE ACO INOX 400ML AK-4009 — sem foto, verificar com fornecedor
   20421, // GARRAFA DE ACO INOX 400ML AK-6021 — sem foto, verificar com fornecedor
+  18804, // MOCHILA COM CARRINHO E BOMBA DE AR B-QB4 — sem foto
+  18803, // MOCHILA DE VIAGEM COM CARRINHO B-QB42616 — sem foto
+  20377, // A005 LATAFFA - KHAMRAH 25ML — sem foto
+  20388, // A024 ORIENTICA - ROYAL AMBER 25ML — sem foto
+  20255, // KIT 2 BOLSAS FEMININA CASUAL 2JT-NDB7227 — sem foto
+  20312, // 153 JEAN PAUL GAULTIER LE MALE 25ML — sem foto
+  20316, // 167 BVLGARI AQVA POUR HOMME 25ML — sem foto
+  20331, // 242 VERSACE EROS 25ML — sem foto
+  20338, // 286 FERRARI BLACK 25ML — sem foto
 ];
 
 // Dicionário de categorias (mesma lógica do atualizar.js, mas com encoding correto)
@@ -69,12 +78,14 @@ const produtos = linhas
   .map(row => {
     const cod = parseInt(row[COL.cod]);
     if (!cod || isNaN(cod)) return null;
+    if (EXCLUIDOS_TEMP.includes(cod)) return null;
+    const nomeRaw = (row[COL.nome] || '').toString().trim();
+    if (['L-', 'S-', 'E-'].some(px => nomeRaw.startsWith(px))) return null;
     const nome = (row[COL.nome] || '').toString().trim();
     if (!nome) return null;
     const fotoNome = `${cod}.jpg`;
     const custo = parsarPreco(row[COL.custo]);
-    const pvendaBruto = parsarPreco(row[COL.pvenda]);
-    const pvenda = pvendaBruto > 0 ? pvendaBruto : parseFloat((custo * MARKUP).toFixed(2));
+    const pvenda = parseFloat((custo * MARKUP).toFixed(2));
     const estoque = parseInt(row[COL.estoque]) || 0;
 
     const imgPath = join(PASTA_IMAGENS, fotoNome);
